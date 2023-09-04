@@ -4,6 +4,7 @@ import com.chung.lifusic.account.common.Constants;
 import com.chung.lifusic.account.common.exception.CustomException;
 import com.chung.lifusic.account.dto.AuthenticationRequest;
 import com.chung.lifusic.account.dto.AuthenticationResponse;
+import com.chung.lifusic.account.dto.LogoutResponse;
 import com.chung.lifusic.account.dto.RegisterRequest;
 import com.chung.lifusic.account.entity.Role;
 import com.chung.lifusic.account.entity.User;
@@ -12,6 +13,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -58,4 +61,26 @@ public class AuthenticationService{
                 .token(jwtToken)
                 .build();
     }
+
+    // 로그아웃
+    public LogoutResponse logout() throws CustomException {
+        final CustomException exception = new CustomException(Constants.ExceptionType.AUTHENTICATION, HttpStatus.NOT_FOUND, "Error occurred");
+        // Context에 저장되어있는 사용자 정보를 꺼낸다
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null) {
+            throw exception;
+        }
+        Object principal = authentication.getPrincipal();
+        // principal이 "anonymous"로 넘어올 때가 있어서 예외처리
+        if (!(principal instanceof User user)) {
+            throw exception;
+        }
+        jwtService.expireToken(user.getEmail());
+
+        return LogoutResponse.builder()
+                .success(true)
+                .build();
+    }
+
+
 }
