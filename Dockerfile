@@ -1,4 +1,12 @@
 FROM openjdk:17-slim
-COPY build/libs/*.jar /usr/src/lifusic/app.jar
+COPY gradlew .
+COPY gradle gradle
+COPY build.gradle.kts .
+COPY settings.gradle.kts .
+COPY src src
+RUN chmod +x ./gradlew && \
+    ./gradlew bootJar && \
+    mkdir -p /usr/src/lifusic && \
+    cp build/libs/*.jar /usr/src/lifusic/app.jar
 WORKDIR /usr/src/lifusic
-ENTRYPOINT ["java", "-jar", "*.jar"]
+ENTRYPOINT ["java", "-jar", "app.jar"]
