@@ -5,6 +5,6 @@ import lombok.Data;
 
 @Data
 @Builder
-public class LogoutResponse {
+public class CommonResponse {
     private boolean success;
 }

@@ -1,5 +1,7 @@
 package com.chung.lifusic.account.dto;
 
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,8 +10,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RegisterRequest {
-    private String firstname;
-    private String lastname;
+    @NotBlank
+    private String name;
+    @Email
     private String email;
+    @NotBlank
+    private String role;
+    @NotBlank
     private String password;
 }

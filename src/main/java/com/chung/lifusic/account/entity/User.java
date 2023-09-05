@@ -1,5 +1,6 @@
 package com.chung.lifusic.account.entity;
 
+import com.chung.lifusic.account.common.Role;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,17 +18,14 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Entity
-@Table(name = "_user")
+@Table(name = "user")
 public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
 
     @Column
-    private String firstname;
-
-    @Column
-    private String lastname;
+    private String name;
 
     @Column
     private String email;
