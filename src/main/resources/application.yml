@@ -2,7 +2,7 @@
 spring:
   datasource:
     driver-class-name: org.mariadb.jdbc.Driver
-    url: jdbc:mariadb://localhost:3308/lifusic
+    url: jdbc:mariadb://localhost:3306/lifusic
     username: ENC(opq8CStgemkllGaDNVtL4pHsg8cuDRxQ)
     password: ENC(1Dm57XikhApWY0zpFOEEPkPWZtpqb72Y)
   jpa:
