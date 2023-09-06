@@ -9,4 +9,4 @@ RUN chmod +x ./gradlew && \
     mkdir -p /usr/src/lifusic && \
     cp build/libs/*.jar /usr/src/lifusic/app.jar
 WORKDIR /usr/src/lifusic
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-jar", "-Dspring.profiles.active=dev", "app.jar"]
