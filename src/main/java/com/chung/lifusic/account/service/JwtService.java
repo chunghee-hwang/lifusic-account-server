@@ -33,7 +33,11 @@ public class JwtService {
 
     // token으로 부터 username(이메일)을 추출한다.
     public String extractUsername(String token) {
-        return extractClaim(token, Claims::getSubject);
+        try {
+            return extractClaim(token, Claims::getSubject);
+        } catch (Exception exception) {
+            return null;
+        }
     }
 
     /**
@@ -43,7 +47,7 @@ public class JwtService {
      * @return 토큰으로 부터 추출한 정보
      * @param <T> 토큰으로 부터 추출한 정보의 타입
      */
-    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) throws Exception{
         final Claims claims = extractAllClaims(token);
         return claimsResolver.apply(claims);
     }
@@ -89,7 +93,11 @@ public class JwtService {
     // 토큰이 만료되었는 지 확인
     public boolean isTokenExpired(String token) {
         // 현재 날짜보다 만료일이 앞에 있다면 만료되었다고 판단한다.
-        return extractExpiration(token).before(new Date());
+        final Date expiration = extractExpiration(token);
+        if (expiration == null) {
+            return true;
+        }
+        return expiration.before(new Date());
     }
 
     // logout 시 redis에서 토큰을 저장하고 있는 키 삭제
@@ -102,7 +110,11 @@ public class JwtService {
 
     // 토큰으로부터 토큰 만료일을 가져온다.
     private Date extractExpiration(String token) {
-        return extractClaim(token, Claims::getExpiration);
+        try {
+            return extractClaim(token, Claims::getExpiration);
+        } catch (Exception exception) {
+            return null;
+        }
     }
 
     // 토큰으로부터 모든 정보를 가져온다

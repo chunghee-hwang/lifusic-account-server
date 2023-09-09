@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,6 +20,7 @@ import java.io.IOException;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final JwtService jwtService;
@@ -36,14 +38,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         final String authHeader = request.getHeader(JWT_HEADER_KEY);
         final String jwt;
         final String userEmail;
-
+        final String ip = request.getRemoteHost();
         // jwt token 형식이 아니면 요청을 차단함
         if (authHeader == null || !authHeader.startsWith(JWT_PREFIX)) {
             filterChain.doFilter(request, response);
+            log.error("{} :: JwtAuthenticationFilter:: Token invalid", ip);
             return;
         }
         jwt = authHeader.substring(JWT_PREFIX.length());
         userEmail = jwtService.extractUsername(jwt); // JWT 토큰으로 부터 유저 이메일 추출
+        log.info("{} :: JwtAuthenticationFilter:: accessed user: {}", ip, userEmail);
         // jwt 토큰에 유저 이메일이 없고, 아직 인증되지 않은 유저라면
         if (userEmail != null && SecurityContextHolder.getContext().getAuthentication() == null) {
             // db에서 유저 정보를 가져옴
@@ -61,7 +65,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
                 // SecurityContext를 갱신한고 controller로 요청을 전달한다.
                 SecurityContextHolder.getContext().setAuthentication(authToken);
+                log.info("{} :: JwtAuthenticationFilter:: token valid: {}", ip, userEmail);
+            } else {
+                log.error("{} :: JwtAuthenticationFilter:: token Invalid: {}", ip, userEmail);
             }
+        } else {
+            log.error("{} :: JwtAuthenticationFilter:: not authorized", ip);
         }
         filterChain.doFilter(request, response);
     }
