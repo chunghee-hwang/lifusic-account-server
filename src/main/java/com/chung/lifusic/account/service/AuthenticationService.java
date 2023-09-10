@@ -97,6 +97,7 @@ public class AuthenticationService{
         }
         String role = user.getRole().name().toLowerCase();
         return GetUserResponse.builder()
+                .id(user.getId())
                 .email(user.getEmail())
                 .name(user.getName())
                 .role(role)
