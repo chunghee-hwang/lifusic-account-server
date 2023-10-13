@@ -2,10 +2,7 @@ package com.chung.lifusic.account.service;
 
 import com.chung.lifusic.account.common.Role;
 import com.chung.lifusic.account.common.exception.CustomException;
-import com.chung.lifusic.account.dto.AuthenticationRequest;
-import com.chung.lifusic.account.dto.AuthenticationResponse;
-import com.chung.lifusic.account.dto.CommonResponse;
-import com.chung.lifusic.account.dto.RegisterRequest;
+import com.chung.lifusic.account.dto.*;
 import com.chung.lifusic.account.entity.User;
 import com.chung.lifusic.account.repository.UserRepository;
 import org.junit.jupiter.api.Assertions;
@@ -21,6 +18,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -150,7 +148,7 @@ public class AuthenticationServiceTest {
     public void logoutSuccess() {
         // given
         User user = getUser("test@email.com", Role.ADMIN);
-        Authentication authentication = new UsernamePasswordAuthenticationToken(user, "1234");
+        Authentication authentication = new UsernamePasswordAuthenticationToken(user, user.getPassword());
 
         // mocking
         MockedStatic<SecurityContextHolder> holderMockedStatic = mockStatic(SecurityContextHolder.class);
@@ -170,6 +168,66 @@ public class AuthenticationServiceTest {
         Assertions.assertTrue(response.isSuccess());
         holderMockedStatic.close();
     }
+
+    @DisplayName("유저 정보 가져오기 - 컨텍스트에 인증 정보가 없으면 null 반환")
+    @Test
+    public void getEmptyUserIfNotAuthenticated() {
+        // given
+
+        // mocking
+        MockedStatic<SecurityContextHolder> holderMockedStatic = mockStatic(SecurityContextHolder.class);
+        given(SecurityContextHolder.getContext()).willReturn(new SecurityContextImpl());
+
+        // when
+        GetUserResponse response = authenticationService.getUser();
+
+        // then
+        Assertions.assertNull(response);
+        holderMockedStatic.close();
+    }
+
+    @DisplayName("유저 정보 가져오기 - 컨텍스트에 유저 principal이 없으면 null 반환")
+    @Test
+    public void getEmptyUserIfPrincipleNotExist() {
+        // given
+        Authentication authentication = new UsernamePasswordAuthenticationToken(null, "1234");
+
+        // mocking
+        MockedStatic<SecurityContextHolder> holderMockedStatic = mockStatic(SecurityContextHolder.class);
+        given(SecurityContextHolder.getContext()).willReturn(new SecurityContextImpl(authentication));
+
+        // when
+        GetUserResponse response = authenticationService.getUser();
+
+        // then
+        Assertions.assertNull(response);
+        holderMockedStatic.close();
+    }
+
+    @DisplayName("유저 정보 가져오기 - 그 이외 조건에서 성공")
+    @Test
+    public void getUserSuccess() {
+        // given
+        User principal = getUser("test@email.com", Role.ADMIN);
+        Authentication authentication = new UsernamePasswordAuthenticationToken(principal, principal.getPassword());
+
+        // mocking
+        MockedStatic<SecurityContextHolder> holderMockedStatic = mockStatic(SecurityContextHolder.class);
+        given(SecurityContextHolder.getContext()).willReturn(new SecurityContextImpl(authentication));
+
+        // when
+        GetUserResponse response = authenticationService.getUser();
+
+        // then
+        Assertions.assertNotNull(response);
+        Assertions.assertNotNull(response.getId());
+        Assertions.assertNotNull(response.getEmail());
+        Assertions.assertNotNull(response.getName());
+        Assertions.assertNotNull(response.getRole());
+
+        holderMockedStatic.close();
+    }
+
 
     private User getUser(String email, Role role) {
         return User.builder().id(1L).email(email)
